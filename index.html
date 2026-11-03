@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OptiGrid - Smart Microgrid Energy Dispatcher</title>
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Chart.js for Rendering Graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- MathJax Configuration -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body>
+
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="sidebar">
+        <div class="brand">
+            <h2>⚡ OptiGrid</h2>
+            <span>Smart Microgrid AI</span>
+        </div>
+        <nav class="nav-menu">
+            <button class="nav-btn active" data-target="page-dashboard">📊 Operations Dashboard</button>
+            <button class="nav-btn" data-target="page-weather">🌦️ Weather & Solar Studio</button>
+            <button class="nav-btn" data-target="page-math">🧮 LP Solver Matrix</button>
+            <button class="nav-btn" data-target="page-financials">📈 ROI & Carbon Offset</button>
+        </nav>
+        <div class="status-badge">
+            <span class="dot"></span> API Connected
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="main-content">
+
+        <!-- PAGE 1: OPERATIONS DASHBOARD -->
+        <section id="page-dashboard" class="page-view active">
+            <header class="page-header">
+                <h1>Executive Dispatcher Dashboard</h1>
+                <p>Real-time 24-hour predictive energy balancing & battery peak shaving</p>
+            </header>
+
+            <div class="controls-card">
+                <h3>⚙️ Live Parameter Configuration</h3>
+
+                <!-- Preset Profiles -->
+                <div class="preset-container" style="margin: 12px 0; display: flex; gap: 10px; align-items: center;">
+                    <span style="font-size: 0.85rem; font-weight: 600; color: #475569;">Load Profile Presets:</span>
+                    <button class="preset-btn active" onclick="applyPreset('campus', event)">🏫 College Campus</button>
+                    <button class="preset-btn" onclick="applyPreset('mall', event)">🏬 Shopping Mall</button>
+                    <button class="preset-btn" onclick="applyPreset('residential', event)">🏡 Residential Zone</button>
+                </div>
+
+                <div class="control-grid">
+                    <div class="control-group">
+                        <label for="citySelect">City (Live API):</label>
+                        <select id="citySelect">
+                            <option value="12.97,77.59">Bangalore, India</option>
+                            <option value="19.07,72.87">Mumbai, India</option>
+                            <option value="28.61,77.20">Delhi, India</option>
+                            <option value="51.50,-0.12">London, UK</option>
+                            <option value="37.77,-122.41">San Francisco, USA</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label for="panelArea">Solar Panel Area: <span id="panelAreaVal">100</span> m²</label>
+                        <input type="range" id="panelArea" min="20" max="300" value="100">
+                    </div>
+                    <div class="control-group">
+                        <label for="batteryCap">Battery Capacity: <span id="batteryCapVal">15</span> kWh</label>
+                        <input type="range" id="batteryCap" min="5" max="50" value="15">
+                    </div>
+                    <div style="display: flex; gap: 8px; grid-column: span 2;">
+                        <button id="runBtn" class="btn-primary" style="flex: 1;">🔄 Re-Optimize</button>
+                        <button id="saveDbBtn" class="btn-primary" style="background: #0284c7;">💾 Save to
+                            Database</button>
+                        <button onclick="window.print()" class="btn-primary" style="background: #475569;">📥 Export
+                            PDF</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <span>Baseline Daily Cost</span>
+                    <h2 id="baselineCost">₹0.00</h2>
+                </div>
+                <div class="kpi-card highlight">
+                    <span>Optimized Daily Cost</span>
+                    <h2 id="optimizedCost">₹0.00</h2>
+                </div>
+                <div class="kpi-card success">
+                    <span>Daily Net Savings</span>
+                    <h2 id="savingsVal">₹0.00 (0%)</h2>
+                </div>
+                <div class="kpi-card">
+                    <span>Solar Self-Consumption</span>
+                    <h2 id="solarRatio">0%</h2>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3>24-Hour Energy Dispatch Profile</h3>
+                    <canvas id="dispatchChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>ToU Tariff vs. Battery Peak Shaving</h3>
+                    <canvas id="tariffChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 2: WEATHER & SOLAR STUDIO -->
+        <section id="page-weather" class="page-view">
+            <header class="page-header">
+                <h1>Weather & Solar Analytics Studio</h1>
+                <p>Live REST API ingestion & temperature-corrected PV generation modeling</p>
+            </header>
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3>Solar Irradiance (W/m²) & Temperature (°C)</h3>
+                    <canvas id="weatherChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>Calculated PV Electrical Yield (kW)</h3>
+                    <canvas id="pvYieldChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 3: LP SOLVER MATRIX -->
+        <section id="page-math" class="page-view">
+            <header class="page-header">
+                <h1>Linear Programming Matrix Inspector</h1>
+                <p>Mathematical formulation of the 24-hour cost minimization problem</p>
+            </header>
+            <div class="info-card">
+                <h3>Objective Function Formulation</h3>
+                <div class="math-code">
+                    <span style="font-size: 1.25rem; font-weight: bold; color: #0f172a;">
+                        min<sub><i>X</i></sub> <i>Z</i> =
+                        <span style="display: inline-block; vertical-align: middle; text-align: center; margin: 0 4px;">
+                            <sup style="font-size: 0.75rem; display: block; line-height: 1;">24</sup>
+                            <span style="font-size: 1.8rem; line-height: 1;">&sum;</span>
+                            <sub style="font-size: 0.75rem; display: block; line-height: 1;"><i>t</i>=1</sub>
+                        </span>
+                        ( Tariff<sub><i>t</i></sub> &middot; <i>P</i><sub>grid,<i>t</i></sub> + <i>c</i><sub>deg</sub>
+                        &middot; <i>P</i><sub>dis,<i>t</i></sub> )
+                    </span>
+                </div>
+                <p style="margin-top: 15px;">
+                    Decision Vector $X \in \mathbb{R}^{72}$: $X = [P_{\text{grid}}(1..24), P_{\text{ch}}(1..24),
+                    P_{\text{dis}}(1..24)]^T$
+                </p>
+            </div>
+            <div class="table-card">
+                <h3>First 6 Hours Solver Vector Breakdown</h3>
+                <table id="vectorTable">
+                    <thead>
+                        <tr>
+                            <th>Hour</th>
+                            <th>Tariff (₹/kWh)</th>
+                            <th>P_grid (kW)</th>
+                            <th>P_ch (kW)</th>
+                            <th>P_dis (kW)</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- PAGE 4: ROI & CARBON OFFSET -->
+        <section id="page-financials" class="page-view">
+            <header class="page-header">
+                <h1>ROI & Carbon Offset Calculator</h1>
+                <p>Long-term financial projection and sustainability reporting</p>
+            </header>
+            <div class="kpi-grid">
+                <div class="kpi-card success">
+                    <span>Projected Annual Savings</span>
+                    <h2 id="annualSavings">₹0.00</h2>
+                </div>
+                <div class="kpi-card">
+                    <span>Annual CO₂ Offset</span>
+                    <h2 id="co2Offset">0.0 Tons</h2>
+                </div>
+                <div class="kpi-card highlight">
+                    <span>Estimated System Payback</span>
+                    <h2 id="paybackPeriod">0.0 Years</h2>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3>5-Year Cumulative Net Financial Return</h3>
+                <canvas id="roiChart"></canvas>
+            </div>
+
+            <!-- Database History Log -->
+            <div class="table-card" style="margin-top: 24px;">
+                <h3>💾 MongoDB Saved Scenarios History</h3>
+                <table id="historyTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>City</th>
+                            <th>Panel Area (m²)</th>
+                            <th>Battery Cap (kWh)</th>
+                            <th>Daily Savings (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="solver.js"></script>
+    <script src="charts.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
